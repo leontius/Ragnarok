@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Text.RegularExpressions;
 using System.Threading;
 using NUnit.Framework;
 
@@ -23,19 +24,28 @@ namespace Ragnarok.NicoNico.Video.Tests
         }
 
         /// <summary>
-        /// 一般の動画によるテスト
+        /// htmlのタグを削除します。
         /// </summary>
-        [Test()]
-        public void NormalTest1()
+        private string RemoveTag(bool removeTag, string html)
         {
-            var video = VideoData.CreateFromPage(
-                "http://www.nicovideo.jp/watch/sm9", this.cc);
+            if (!removeTag)
+            {
+                return html;
+            }
+
+            var result = Regex.Replace(html, @"<\w+[^>]*?>", "");
+            return Regex.Replace(result, @"</?\w+( /)?>", "");
+        }
+
+        private void TestSM9(VideoData video, bool removeTag)
+        {
             Assert.IsNotNull(video);
 
             Assert.AreEqual("sm9", video.IdString);
             Assert.AreEqual(-1, video.ThreadId);
             Assert.AreEqual("新・豪血寺一族 -煩悩解放 - レッツゴー！陰陽師", video.Title);
             Assert.AreEqual("レッツゴー！陰陽師（フルコーラスバージョン）", video.Description);
+            Assert.AreEqual(DateTime.Parse("2007-03-06T00:33:00+09:00"), video.StartTime);
             Assert.GreaterOrEqual(video.ViewCounter, 15104451);
             Assert.GreaterOrEqual(video.CommentCounter, 4320605);
             Assert.GreaterOrEqual(video.MylistCounter, 159164);
@@ -44,34 +54,27 @@ namespace Ragnarok.NicoNico.Video.Tests
             {
                 "陰陽師", "レッツゴー！陰陽師", "公式", "音楽", "ゲーム"
             };
-            Assert.LessOrEqual(tags.Count(), video.Tags.Count());
-            tags.ForEachWithIndex((_, i) => Assert.AreEqual(_, video.Tags[i]));
+            Assert.LessOrEqual(tags.Count(), video.TagList.Count());
+            tags.ForEachWithIndex((_, i) => Assert.AreEqual(_, video.TagList[i]));
         }
 
-        /// <summary>
-        /// 一般の動画によるテスト2
-        /// </summary>
-        [Test()]
-        public void NormalTest2()
+        private void TestSM941537(VideoData video, bool removeTag)
         {
-            var video = VideoData.CreateFromPage(
-                "http://www.nicovideo.jp/watch/sm941537", this.cc);
-            Assert.IsNotNull(video);
-
             Assert.AreEqual("sm941537", video.IdString);
             Assert.AreEqual(-1, video.ThreadId);
             Assert.AreEqual("ボーカロイド　初音ミク　デモソング", video.Title);
-            Assert.AreEqual(
+            Assert.AreEqual(RemoveTag(removeTag,
                 "クリプトン開発のVOCALOID。つまり音声合成ソフトです　　　" +
-                "　　　　　　　　　　　　　　　　　　　　　　　　　　　　" + 
+                "　　　　　　　　　　　　　　　　　　　　　　　　　　　　" +
                 "　　　　　　　　　CV：藤田咲（主な出演作＊ TVアニメ「と" +
-                "きめきメモリアルOnly Love」弥生水奈役ＴＶアニメ「がくえんゆー" + 
+                "きめきメモリアルOnly Love」弥生水奈役ＴＶアニメ「がくえんゆー" +
                 "とぴあ まなびストレート！」小鳥桃葉役 TVアニメ「つよきすCool×Sweet」" +
                 "　蟹沢きぬ、 TVアニメ「吉永さん家のガーゴイル」　など）　　　　　" +
-                "詳しくはこちらhttp://www.crypton.co.jp/mp/pages/prod/vocaloid/cv01.jsp　" + 
+                "詳しくはこちらhttp://www.crypton.co.jp/mp/pages/prod/vocaloid/cv01.jsp　" +
                 "私もミクで遊んでみました " +
-                "<a href=\"http://www.nicovideo.jp/mylist/4883031\" target=\"_blank\">mylist/4883031</a>",
+                "<a href=\"http://www.nicovideo.jp/mylist/4883031\" target=\"_blank\">mylist/4883031</a>"),
                 video.Description);
+            Assert.AreEqual(DateTime.Parse("2007-08-29T14:02:39+09:00"), video.StartTime);
             Assert.GreaterOrEqual(video.ViewCounter, 165419);
             Assert.GreaterOrEqual(video.CommentCounter, 1948);
             Assert.GreaterOrEqual(video.MylistCounter, 2363);
@@ -80,25 +83,55 @@ namespace Ragnarok.NicoNico.Video.Tests
             {
                 "音楽", "初音ミク", "公式デモ", "VOCALOID"
             };
-            Assert.LessOrEqual(tags.Count(), video.Tags.Count());
-            tags.ForEachWithIndex((_, i) => Assert.AreEqual(_, video.Tags[i]));
+            Assert.LessOrEqual(tags.Count(), video.TagList.Count());
+            tags.ForEachWithIndex((_, i) => Assert.AreEqual(_, video.TagList[i]));
         }
 
-        /// <summary>
-        /// チャンネルのCM動画によるテスト
-        /// </summary>
-        [Test()]
-        public void ChannelTest1()
+        private void TestSM500873(VideoData video, bool removeTag)
         {
-            var video = VideoData.CreateFromPage(
-                "http://www.nicovideo.jp/watch/1441099865", this.cc);
+            Assert.AreEqual("sm500873", video.IdString);
+            Assert.AreEqual(-1, video.ThreadId);
+            Assert.AreEqual("組曲『ニコニコ動画』 ", video.Title);
+            Assert.AreEqual(RemoveTag(removeTag,
+                "<font size=\"+2\">700万再生、ありがとうございました。<br />" +
+                "記念動画公開中です ⇒ (<a href=\"http://www.nicovideo.jp/watch/sm14242201\" class=\"watch\">sm14242201</a>)<br />" +
+                "</font><br />" +
+                "ニコニコ動画(β・γ)で人気のあった曲などを繋いでひとつの曲にしてみました(2度目)。全33曲。<br />" +
+                "<font size=\"-2\">※多くの方を誤解させてしまっているようですが(申し訳ないです)、厳密には「組曲」ではなく「メドレー」です。<br />" +
+                "「組曲という名前のメドレー」だと思ってください。</font><br /><br />" +
+                "<a href=\"http://www.nicovideo.jp/mylist/1535765\" target=\"_blank\">mylist/1535765</a><br />" +
+                "<a href=\"http://www.nicovideo.jp/user/145217\" target=\"_blank\">user/145217</a>"),
+                video.Description);
+            Assert.AreEqual(DateTime.Parse("2007-06-23T18:27:06+09:00"), video.StartTime);
+            Assert.GreaterOrEqual(video.ViewCounter, 8882556);
+            Assert.GreaterOrEqual(video.CommentCounter, 4422089);
+            Assert.GreaterOrEqual(video.MylistCounter, 140981);
+
+            var tags = new string[]
+            {
+                "音楽", "アレンジ", "組曲『ニコニコ動画』", "空気の読めるWMP",
+                "ニコニコオールスター",
+            };
+            Assert.LessOrEqual(tags.Count(), video.TagList.Count());
+            tags.ForEachWithIndex((_, i) => Assert.AreEqual(_, video.TagList[i]));
+        }
+
+        private void Test1441099865(VideoData video, bool removeTag)
+        {
             Assert.IsNotNull(video);
 
             Assert.AreEqual("so27063885", video.IdString);
-            Assert.AreEqual(1441099865, video.ThreadId);
+            Assert.AreEqual(removeTag ? -1 : 1441099865, video.ThreadId);
             Assert.AreEqual("【9/30まで】将棋プレミアム【無料トライアルキャンペーン実施中】", video.Title);
-            Assert.IsNotNullOrEmpty(video.Description);
-            Assert.GreaterOrEqual(video.ViewCounter, 0);
+            Assert.AreEqual(RemoveTag(removeTag,
+                "囲碁・将棋チャンネルの新会員サービス【将棋プレミアム】が8月10日(月)よりスタート！<br>" +
+                "いつでもどこでも見られるオンデマンドサービスをはじめ、会員イベントやプレミアムグッズプレゼントなど将棋ファン必見のサービスです！<br><br>" +
+                "9月30日(水)まで無料メルマガ会員登録を行うと、すべてのコンテンツが見放題となる<br>" +
+                "「無料トライアルキャンペーン 」も実施しています。<br><br>" +
+                "詳しくは将棋プレミアム(<a href=\"http://www.igoshogi.net/shogipremium/\" target=\"_blank\">http://www.igoshogi.net/shogipremium/</a>)へ今すぐアクセス☆"),
+                video.Description);
+            Assert.AreEqual(DateTime.Parse("2015-09-01T18:30:00+09:00"), video.StartTime);
+            Assert.GreaterOrEqual(video.ViewCounter, 194);
             Assert.GreaterOrEqual(video.CommentCounter, 0);
             Assert.GreaterOrEqual(video.MylistCounter, 0);
 
@@ -107,8 +140,67 @@ namespace Ragnarok.NicoNico.Video.Tests
                 "ゲーム", "将棋", "生放送", "CM", "実験動画", "糸谷哲郎",
                 "将棋プレミアム", "囲碁将棋チャンネル"
             };
-            Assert.AreEqual(tags.Count(), video.Tags.Count());
-            tags.ForEachWithIndex((_, i) => Assert.AreEqual(_, video.Tags[i]));
+            Assert.AreEqual(tags.Count(), video.TagList.Count());
+            tags.ForEachWithIndex((_, i) => Assert.AreEqual(_, video.TagList[i]));
+        }
+
+        /// <summary>
+        /// CreateFromApiのテスト
+        /// </summary>
+        [Test()]
+        public void CreateFromApiTest()
+        {
+            TestSM9(VideoData.CreateFromApi("sm9"), true);
+            TestSM941537(VideoData.CreateFromApi("sm941537"), true);
+            TestSM500873(VideoData.CreateFromApi("sm500873"), true);
+            Test1441099865(VideoData.CreateFromApi(
+                "http://www.nicovideo.jp/watch/1441099865?eco=1"), true);
+
+            Assert.Catch(() =>
+                VideoData.CreateFromApi("sm44422222222222222"));
+            Assert.Catch(() =>
+                VideoData.CreateFromApi("134444444444444444"));
+        }
+
+        /// <summary>
+        /// CreateFromPageのテスト
+        /// </summary>
+        [Test()]
+        public void CreateFromPageTest()
+        {
+            TestSM9(VideoData.CreateFromPage("sm9", this.cc), false);
+            Console.WriteLine("Waiting ...");
+            Thread.Sleep(4000);
+            TestSM941537(VideoData.CreateFromPage("sm941537", this.cc), false);
+            Console.WriteLine("Waiting ...");
+            Thread.Sleep(4000);
+            TestSM500873(VideoData.CreateFromPage("sm500873", this.cc), false);
+            Console.WriteLine("Waiting ...");
+            Thread.Sleep(4000);
+            Test1441099865(VideoData.CreateFromPage(
+                "http://www.nicovideo.jp/watch/1441099865?eco=1", this.cc), false);
+            Thread.Sleep(4000);
+
+            Assert.Catch(() =>
+                VideoData.CreateFromPage("sm44422222222222222", this.cc));
+            Thread.Sleep(4000);
+            Assert.Catch(() =>
+                VideoData.CreateFromPage("134444444444444444", this.cc));
+        }
+
+        /// <summary>
+        /// SnapshotApiのテスト
+        /// </summary>
+        [Test()]
+        public void SnapshotApiTest()
+        {
+            var vs = SnapshotApi.Search("レッツゴー！陰陽師（フルコーラスバージョン）");
+            TestSM9(vs.OrderByDescending(_ => _.ViewCounter).FirstOrDefault(), false);
+
+            /*TestSM941537(VideoData.CreateFromPage("sm941537", this.cc), false);
+            TestSM500873(VideoData.CreateFromPage("sm500873", this.cc), false);
+            Test1441099865(VideoData.CreateFromPage(
+                "http://www.nicovideo.jp/watch/1441099865?eco=1", this.cc), false);*/
         }
     }
 }

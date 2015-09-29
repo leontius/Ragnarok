@@ -44,25 +44,39 @@ namespace Ragnarok.NicoNico.Video.Tests
                     return Regex.Replace(result, @"</?\w+( /)?>", "");
 
                 case RemoveTagType.ATagOnly:
-                    return Regex.Replace(html, @"<a[^>]*?>((sm|mylist|user).*?)</a>", "$1");
+                    return Regex.Replace(html, @"<a[^>]*?>((sm|mylist|user|watch).*?)</a>", "$1");
             }
 
             return string.Empty;
         }
 
+        /// <summary>
+        /// VideoDataオブジェトの基本的なチェックを行います。
+        /// </summary>
+        private void AssertBase(VideoData video)
+        {
+            var now = DateTime.Now;
+            var span = TimeSpan.FromSeconds(60);
+
+            Assert.NotNull(video);
+            Assert.True(now - span <= video.Timestamp && video.Timestamp <= now);
+        }
+
         private void TestSM9(VideoData video, RemoveTagType removeTagType)
         {
-            Assert.IsNotNull(video);
+            AssertBase(video);
 
             Assert.AreEqual("sm9", video.IdString);
             Assert.AreEqual(-1, video.ThreadId);
             Assert.AreEqual("新・豪血寺一族 -煩悩解放 - レッツゴー！陰陽師", video.Title);
             Assert.AreEqual("レッツゴー！陰陽師（フルコーラスバージョン）", video.Description);
             Assert.AreEqual(DateTime.Parse("2007-03-06T00:33:00+09:00"), video.StartTime);
-            Assert.True(video.IsVisible != null && video.IsVisible.Value);
-            if (removeTagType != RemoveTagType.ATagOnly)
+            Assert.NotNull(video.IsVisible);
+            Assert.True(video.IsVisible.Value);
+            if (removeTagType == RemoveTagType.None)
             {
-                Assert.True(video.IsMemberOnly != null && !video.IsMemberOnly.Value);
+                Assert.NotNull(video.IsMemberOnly);
+                Assert.False(video.IsMemberOnly.Value);
             }
             else
             {
@@ -82,6 +96,8 @@ namespace Ragnarok.NicoNico.Video.Tests
 
         private void TestSM941537(VideoData video, RemoveTagType removeTagType)
         {
+            AssertBase(video);
+
             Assert.AreEqual("sm941537", video.IdString);
             Assert.AreEqual(-1, video.ThreadId);
             Assert.AreEqual("ボーカロイド　初音ミク　デモソング", video.Title);
@@ -97,10 +113,12 @@ namespace Ragnarok.NicoNico.Video.Tests
                 "<a href=\"http://www.nicovideo.jp/mylist/4883031\" target=\"_blank\">mylist/4883031</a>"),
                 video.Description);
             Assert.AreEqual(DateTime.Parse("2007-08-29T14:02:39+09:00"), video.StartTime);
-            Assert.True(video.IsVisible != null && video.IsVisible.Value);
-            if (removeTagType != RemoveTagType.ATagOnly)
+            Assert.NotNull(video.IsVisible);
+            Assert.True(video.IsVisible.Value);
+            if (removeTagType == RemoveTagType.None)
             {
-                Assert.True(video.IsMemberOnly != null && !video.IsMemberOnly.Value);
+                Assert.NotNull(video.IsMemberOnly);
+                Assert.False(video.IsMemberOnly.Value);
             }
             else
             {
@@ -120,6 +138,8 @@ namespace Ragnarok.NicoNico.Video.Tests
 
         private void TestSM500873(VideoData video, RemoveTagType removeTagType)
         {
+            AssertBase(video);
+
             Assert.AreEqual("sm500873", video.IdString);
             Assert.AreEqual(-1, video.ThreadId);
             Assert.AreEqual("組曲『ニコニコ動画』 ", video.Title);
@@ -134,10 +154,12 @@ namespace Ragnarok.NicoNico.Video.Tests
                 "<a href=\"http://www.nicovideo.jp/user/145217\" target=\"_blank\">user/145217</a>"),
                 video.Description);
             Assert.AreEqual(DateTime.Parse("2007-06-23T18:27:06+09:00"), video.StartTime);
-            Assert.True(video.IsVisible != null && video.IsVisible.Value);
-            if (removeTagType != RemoveTagType.ATagOnly)
+            Assert.NotNull(video.IsVisible);
+            Assert.True(video.IsVisible.Value);
+            if (removeTagType == RemoveTagType.None)
             {
-                Assert.True(video.IsMemberOnly != null && !video.IsMemberOnly.Value);
+                Assert.NotNull(video.IsMemberOnly);
+                Assert.False(video.IsMemberOnly.Value);
             }
             else
             {
@@ -158,7 +180,7 @@ namespace Ragnarok.NicoNico.Video.Tests
 
         private void Test1441099865(VideoData video, RemoveTagType removeTagType)
         {
-            Assert.IsNotNull(video);
+            AssertBase(video);
 
             Assert.AreEqual("so27063885", video.IdString);
             Assert.AreEqual(removeTagType == RemoveTagType.None ? 1441099865 : -1, video.ThreadId);
@@ -171,10 +193,12 @@ namespace Ragnarok.NicoNico.Video.Tests
                 "詳しくは将棋プレミアム(<a href=\"http://www.igoshogi.net/shogipremium/\" target=\"_blank\">http://www.igoshogi.net/shogipremium/</a>)へ今すぐアクセス☆"),
                 video.Description);
             Assert.AreEqual(DateTime.Parse("2015-09-01T18:30:00+09:00"), video.StartTime);
-            Assert.True(video.IsVisible != null && video.IsVisible.Value);
-            if (removeTagType != RemoveTagType.ATagOnly)
+            Assert.NotNull(video.IsVisible);
+            Assert.True(video.IsVisible.Value);
+            if (removeTagType == RemoveTagType.None)
             {
-                Assert.True(video.IsMemberOnly != null && !video.IsMemberOnly.Value);
+                Assert.NotNull(video.IsMemberOnly);
+                Assert.False(video.IsMemberOnly.Value);
             }
             else
             {
@@ -195,7 +219,7 @@ namespace Ragnarok.NicoNico.Video.Tests
 
         private void TestMemberOnly(VideoData video, RemoveTagType removeTagType)
         {
-            Assert.IsNotNull(video);
+            AssertBase(video);
 
             Assert.AreEqual("so23569455", video.IdString);
             Assert.AreEqual(removeTagType == RemoveTagType.None ? 1400284158 : -1, video.ThreadId);
@@ -208,16 +232,18 @@ namespace Ragnarok.NicoNico.Video.Tests
                 "詳細：置き碁をテーマにした入門講座です。<br>" +
                 "　　　是非ご覧いただき、皆様の置き碁対局でお役立てください！<br>" +
                 "【第1回は無料視聴できます】<br><br>" +
-                "前回【watch/1400283915】 次回【watch/1400284278】<br>" +
-                "第1回【watch/1400283915】<br>" +
-                "囲碁講座第1回マイリスト(全動画無料)【mylist/50433520】<br><br>" +
-                "万波佳奈の囲碁講座「打ち込み＆荒らし大作戦」【watch/1390348239】"),
+                "前回【<a href=\"http://www.nicovideo.jp/watch/1400283915\" class=\"watch\">watch/1400283915</a>】 次回【<a href=\"http://www.nicovideo.jp/watch/1400284278\" class=\"watch\">watch/1400284278</a>】<br>" +
+                "第1回【<a href=\"http://www.nicovideo.jp/watch/1400283915\" class=\"watch\">watch/1400283915</a>】<br>" +
+                "囲碁講座第1回マイリスト(全動画無料)【<a href=\"http://www.nicovideo.jp/mylist/50433520\" target=\"_blank\">mylist/50433520</a>】<br><br>" +
+                "万波佳奈の囲碁講座「打ち込み＆荒らし大作戦」【<a href=\"http://www.nicovideo.jp/watch/1390348239\" class=\"watch\">watch/1390348239</a>】"),
                 video.Description);
             Assert.AreEqual(DateTime.Parse("2014-05-17T10:00:00+09:00"), video.StartTime);
-            Assert.True(video.IsVisible != null && video.IsVisible.Value);
-            if (removeTagType != RemoveTagType.ATagOnly)
+            Assert.NotNull(video.IsVisible);
+            Assert.True(video.IsVisible.Value);
+            if (removeTagType == RemoveTagType.None)
             {
-                Assert.True(video.IsMemberOnly != null && video.IsMemberOnly.Value);
+                Assert.NotNull(video.IsMemberOnly);
+                Assert.True(video.IsMemberOnly.Value);
             }
             else
             {
@@ -236,6 +262,56 @@ namespace Ragnarok.NicoNico.Video.Tests
             tags.ForEach(_ => Assert.True(video.TagList.Contains(_)));
         }
 
+        private void TestHidden(VideoData video, RemoveTagType removeTagType)
+        {
+            AssertBase(video);
+
+            Assert.AreEqual("so27077196", video.IdString);
+            Assert.AreEqual(removeTagType == RemoveTagType.None ? 1441274407 : -1, video.ThreadId);
+            Assert.AreEqual("【囲碁・無料】第40期 名人戦 挑戦手合七番勝負 第1局 井山裕太名人 vs 高尾紳路天元 1日目朝【取材映像・短縮版】", video.Title);
+            Assert.AreEqual(RemoveTag(removeTagType,
+                "【動画内容】<br>" +
+                "■日時：2015年9月3～4日<br>" +
+                "■対局者：井山裕太名人 vs 高尾紳路天元<br>" +
+                "■持ち時間：各8時間（秒読み10分前）<br>" +
+                "■対局場：ホテル椿山荘東京<br>" +
+                "■主催：朝日新聞社、日本棋院、関西棋院<br><br>" +
+                "第40期名人戦 挑戦手合七番勝負 第1局 1日目朝の対局開始前映像です。<br><br>" +
+                "◆日本棋院 ＞ 第40期名人戦<br><a href=\"http://www.nihonkiin.or.jp/match/meijin/040.html\" target=\"_blank\">http://www.nihonkiin.or.jp/match/meijin/040.html</a><br><br><br>" +
+                "【囲碁プレミアム】<br>" +
+                "８月１０日からプレオープンしたオンデマンドサービス「囲碁プレミアム」では、<br>" +
+                "各棋戦やイベントの取材映像を毎週お届けします！<br><br>" +
+                "さらに現在、囲碁プレミアムでは「無料トライアルキャンペーン」を実施しております。<br>" +
+                "無料メルマガ会員登録をして頂いたお客様は全員、サービスを期間中すべて無料でご利用頂けます。<br><br>" +
+                "今対局の終局映像などもメルマガ会員登録をして頂ければ無料でご視聴できますので、ぜひ皆様ご登録下さい！！<br><br>" +
+                "◆トップページ<br><a href=\"http://www.igoshogi.net/igopremium/\" target=\"_blank\">http://www.igoshogi.net/igopremium/</a><br>" +
+                "◆無料トライアルキャンペーン<br><a href=\"http://www.igoshogi.net/igopremium/event/\" target=\"_blank\">http://www.igoshogi.net/igopremium/event/</a>"),
+                video.Description);
+            Assert.AreEqual(DateTime.Parse("2015-09-03T19:00:00+09:00"), video.StartTime);
+            Assert.NotNull(video.IsVisible);
+            Assert.False(video.IsVisible.Value);
+            if (removeTagType == RemoveTagType.None)
+            {
+                Assert.NotNull(video.IsMemberOnly);
+                Assert.False(video.IsMemberOnly.Value);
+            }
+            else
+            {
+                Assert.Null(video.IsMemberOnly);
+            }
+            Assert.GreaterOrEqual(video.ViewCounter, 120);
+            Assert.GreaterOrEqual(video.CommentCounter, 1);
+            Assert.GreaterOrEqual(video.MylistCounter, 2);
+
+            var tags = new string[]
+            {
+                "ゲーム", "囲碁", "名人戦", "第40期", "井山裕太", "高尾紳路",
+                "囲碁将棋チャンネル", "実験動画", "囲碁プレミアム", "取材映像",
+            };
+            Assert.AreEqual(tags.Count(), video.TagList.Count());
+            tags.ForEach(_ => Assert.True(video.TagList.Contains(_)));
+        }
+
         /// <summary>
         /// CreateFromApiのテスト
         /// </summary>
@@ -249,10 +325,10 @@ namespace Ragnarok.NicoNico.Video.Tests
                 "http://www.nicovideo.jp/watch/1441099865?eco=1"), RemoveTagType.All);
             TestMemberOnly(VideoData.CreateFromApi("1400284158"), RemoveTagType.All);
 
-            Assert.Catch(() =>
-                VideoData.CreateFromApi("sm44422222222222222"));
-            Assert.Catch(() =>
-                VideoData.CreateFromApi("134444444444444444"));
+            // 非表示の動画は取れない
+            Assert.Catch(() => VideoData.CreateFromApi("1441274407"));
+            Assert.Catch(() => VideoData.CreateFromApi("sm44422222222222222"));
+            Assert.Catch(() => VideoData.CreateFromApi("134444444444444444"));
         }
 
         /// <summary>
@@ -261,7 +337,7 @@ namespace Ragnarok.NicoNico.Video.Tests
         [Test()]
         public void CreateFromPageTest()
         {
-            TestSM9(VideoData.CreateFromPage("sm9", this.cc), RemoveTagType.None);
+            /*TestSM9(VideoData.CreateFromPage("sm9", this.cc), RemoveTagType.None);
             Console.WriteLine("Waiting ...");
             Thread.Sleep(4000);
             TestSM941537(VideoData.CreateFromPage("sm941537", this.cc), RemoveTagType.None);
@@ -275,6 +351,9 @@ namespace Ragnarok.NicoNico.Video.Tests
             Console.WriteLine("Waiting ...");
             Thread.Sleep(4000);
             TestMemberOnly(VideoData.CreateFromPage("1400284158", this.cc), RemoveTagType.None);
+            Console.WriteLine("Waiting ...");
+            Thread.Sleep(4000);*/
+            TestHidden(VideoData.CreateFromPage("1441274407", this.cc), RemoveTagType.None);
             Console.WriteLine("Waiting ...");
             Thread.Sleep(4000);
 
